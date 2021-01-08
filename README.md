@@ -6,7 +6,7 @@ Specification of a set of values, orderings on them, and some encodings for them
 
 A valuable value (just *value* from now on) is any of the following:
 
-- `null`: A value that carries [no further information](https://en.wikipedia.org/wiki/Unit_type).
+- `nil`: A value that carries [no further information](https://en.wikipedia.org/wiki/Unit_type).
 - `boolean`: Either `true` or `false`.
 - `float`: An [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754) double precision float, except that there are no `NaN` floats.
 - `int`: An integer between `-(2^63)` and `(2^63) - 1` (inclusive).
