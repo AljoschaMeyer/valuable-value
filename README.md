@@ -8,11 +8,9 @@ A valuable value (just *value* from now on) is any of the following:
 
 - `nil`: A value that carries [no further information](https://en.wikipedia.org/wiki/Unit_type).
 - `boolean`: Either `true` or `false`.
-- `float`: An [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754) double precision float, except that there are no `NaN` floats.
+- `float`: An [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754) double precision float
 - `int`: An integer between `-(2^63)` and `(2^63) - 1` (inclusive).
-- `string`: An ordered sequence of up to `(2^63) - 1` bytes (integers between `0` and `255` inclusive).
 - `array`: An ordered sequence of up to `(2^63) - 1` values.
-- `set`: An unordered collection of up to `(2^63) - 1` pairwise distinct values.
 - `map`: An unordered collection of pairs (`entries`) of values, where the first values of all entries are pairwise distinct. The first value of an entry is called a *key*, the second value is the *corresponding value*.
 
 The choice of values a self-describing format provides is to some degree arbitrary. For vv, decisions between different approaches have often been decided based on machine-friendliness. Fixed-width integers are much easier to handle than arbitrary precision integers. Floats are easier than true rationals. Maximum collection and string sizes enable implementations to precisely follow the spec rather than introducing arbitrary limits that would inevitably differ between distinct implementations.
@@ -23,16 +21,14 @@ This section defines some binary relations that end up being useful when working
 
 ### Equality
 
-The equality relation on values is an [equivalence relation](https://en.wikipedia.org/wiki/Equivalence_relation). Its definition is very straightforward, except that it distinguishes between positive and negative floating-point zeros, unlike the IEEE 754 standard:
+The equality relation on values is an [equivalence relation](https://en.wikipedia.org/wiki/Equivalence_relation).
 
 - `nil` is equal to `nil` and no other value
 - `false` is equal to `false` and no other value
 - `true` is equal to `true` and no other value
-- two floats are equal if and only if their bit representation is equal (since there are no NaN values, the only way this differs from the usual IEEE 754 equality on floats is for negative and positive zero)
+- two floats are equal if and only if their bit representation is equal (beware, this differs from the usual IEEE 754 equality on floats in that negative and positive zero are considered non-equal and in that NaNs are equal to themselves - although NaNs of differing bit patterns are still unequal)
 - two ints are equal if and only if their bit representation is equal (note that unlike floats, there is no distinct value for a negative 0)
-- two strings are equal if and only if they they are bitwise equal
 - two arrays are equal if and only if they have the same length and they are element-wise equal
-- two sets are equal if and only if every value within the first set is also a value within the second set and vice versa
 - two maps are equal if and only if every key in the first map is also a key in the second map and vice versa, and both maps associate equal values with equal keys
 
 ### Linear Order
@@ -47,32 +43,22 @@ The order is the transitive closure of the following base definitions:
 - booleans are greater than `nil`
 - floats are greater than booleans
 - ints are greater than floats
-- strings are greater than ints
 - arrays are greater than strings
-- sets are greater than arrays
 - maps are greater than sets
-
 - `true` is greater than `false`
-- negative infinity is less than any other float
-- positive infinity is greater than any other float
-- finite negative floats are sorted numerically (e.g. `-1.1 < -1.0 < -0.0`)
-- finite positive floats are sorted numerically (e.g. `0.0 < 1.0 < 1.1`)
-- positive floats are greater than negative floats (e.g. `-0.0 < 0.0`)
+- floats are ordered according to the IEEE 754-2008 totalOrder predicate, or as summarized [here](https://www.gnu.org/software/libc/manual/html_node/FP-Comparison-Functions.html): negative quiet NaNs, in order of decreasing payload; negative signaling NaNs, in order of decreasing payload; negative infinity; finite numbers, in ascending order, with negative zero before positive zero; positive infinity; positive signaling NaNs, in order of increasing payload; positive quiet NaNs, in order of increasing payload
 - ints are sorted numerically (e.g. `-1 < 0 < 1`)
-- strings are sorted [lexicographically](https://en.wikipedia.org/wiki/Lexicographic_order)
-- arrays are sorted lexicographically
+- arrays are sorted [lexicographically](https://en.wikipedia.org/wiki/Lexicographic_order)
 - sets are sorted amongst themselves as if they were arrays containing the set items in ascending order
-- maps are sorted amongst themselves as if they were sets containing two-element arrays whose first elements are the keys and whose second elements are the corresponding values
+- maps are sorted amongst themselves as if they were arrays containing the entries in ascending order of their keys, each entry being a two-element array whose first element is the key and whose second element is the corresponding value
 
 ### A Meaningful Partial Order
 
-The linear order make some arbitrary decisions to achieve linearity, resulting in fairly meaningless [greatest lower bounds and least upper bounds](https://en.wikipedia.org/wiki/Infimum_and_supremum). The following [partial order](https://en.wikipedia.org/wiki/Partially_ordered_set#Formal_definition) makes more meaningful choices (e.g. sets being compared via the subset relation), while still being compatible with the linear order: if `v < w` in the partial order, then also `v < w` in the linear order.
+The linear order make some arbitrary decisions to achieve linearity, resulting in fairly meaningless [greatest lower bounds and least upper bounds](https://en.wikipedia.org/wiki/Infimum_and_supremum). The following [partial order](https://en.wikipedia.org/wiki/Partially_ordered_set#Formal_definition) makes more meaningful choices, while still being compatible with the linear order: if `v < w` in the partial order, then also `v < w` in the linear order.
 
-There is no defined order between values of different kinds. Within a kind, the ordering is the same as the linear order for `nil`, booleans, floats, and ints. Strings and collections are ordered as follows:
+There is no defined order between values of different kinds. Within a kind, the ordering is the same as the linear order for `nil`, booleans, floats, and ints. Arrays and maps are ordered as follows:
 
-- a string `S` is less than a string `T` if and only if `S` contains at most as many bytes as `T` and every byte in `S` is less than the byte at the same position in `T`
 - an array `A` is less than an array `B` if and only if `A` contains at most as many values as `B` and every element in `A` is less than the element at the same position in `B`
-- a set `S` is less than a set `T` if and only if `S` is a subset of `T`
 - a map `M` is less than a map `N` if and only if the set of keys in `M` is a subset of the set of keys in `N` and for every key `k` in `M` the value associated with `k` in `M` is less than the value associated with `k` in `N`
 
 ## Encodings
@@ -82,7 +68,9 @@ There are different encodings of values, suitable for different use cases:
 - The *human-readable encoding* is inefficient but nice for humans to work with.
 - The *compact encoding* is space-efficient and easy to parse for machines but not for humans.
 - The *hybrid encoding* admits both human-readable and compact representations.
-- The *canonic encoding* is efficient and there is a one-to-one mapping between codes and values.
+- The *canonic encoding* guarantees a one-to-one mapping between codes and values.
+
+In the following, a *string* refers to an array whose entries are integers between `0` and `255`, and a *set* refers to a map that maps all its keys to `nil`. Both of these get more compact and easy to write encodings.
 
 ### Human-Readable Encoding
 
@@ -103,6 +91,8 @@ The bytes `0x09` (tab), `0x0a` (newline), and `0x20` (space) are considered whit
 #### Floats
 
 Positive infinity is either encoded as the utf-8 string `Inf` or as the utf-8 string `+Inf`.
+
+Positive NaNs are encoded as `NaN@zzzzzzzzzzzzz` or `+NaN@zzzzzzzzzzzzz`, where the `z` are thirteen hexadecimal digits indicating the bits of the significand. The number must be non-zero and the first digit must be a `0` or `1`, i.e. a number between `1` and `2^53 - 1`, the valid NaN payloads. Negative NaNs use `-NaN@zzzzzzzzzzzzz`. The positive NaN whose payload bits are all ones can be encoded as `NaN`. The negative NaN whose payload bits are all ones can be encoded as `-NaN`.
 
 A negative float (including negative zero and negative infinity) is encoded as a `-` directly followed by an encoding of the same float but with the sign bit flipped, except that the encoding of the positive float may not begin with a `+`.
 
@@ -126,9 +116,15 @@ Any character of an int encoding may be followed by an arbitrary number of under
 
 When decoding, reading an integer outside the allowed range (between `-(2^63)` and `(2^63) - 1` inclusive) is an *error*. Those are not valid human-readably encoded values. Superfluous leading zeros are allowed.
 
+#### Arrays
+
+An array is encoded as a comma-separated list of the encodings of the contained values, enclosed between brackets `[` and `]`. An optional trailing comma before the closing bracket is allowed. Any amount of whitespace can be placed between brackets, contained values, and commas. The list may contain at most `(2^63) - 1` entries.
+
+When decoding, reading an array of more than `(2^63) - 1` contained values is an *error*.
+
 #### Strings
 
-There are multiple ways of encoding strings.
+There are additional ways of encoding strings (reminder: a string is an array whose entries are integers between `0` and `255`).
 
 A string can be encoded as a comma-separated (`,`) list of its bytes, enclosed between `@[` and `]`. The bytes are encoded just like `ints`, except that the numerical value must be between `0` and `255` inclusive. An optional trailing comma before the closing bracket is allowed. Any amount of whitespace can be placed between brackets, contained values, and commas.
 
@@ -151,19 +147,7 @@ When decoding, reading either a literal or an escape sequence that does not corr
 
 A string whose content is valid UTF-8 can also be encoded without escape sequences: one to 256 `@`, followed by `"`, followed by valid UTF-8, followed by `"`, followed by the same number of `@` as at the beginning of the string encoding.
 
-When decoding, reading a string value consisting of more than `(2^63) - 1` bytes is an *error*.
-
-#### Arrays
-
-An array is encoded as a comma-separated list of the encodings of the contained values, enclosed between brackets `[` and `]`. An optional trailing comma before the closing bracket is allowed. Any amount of whitespace can be placed between brackets, contained values, and commas. The list may contain at most `(2^63) - 1` entries.
-
-When decoding, reading an array of more than `(2^63) - 1` contained values is an *error*.
-
-#### Sets
-
-A set is encoded as a comma-separated list of the encodings of the contained values, enclosed between `@{` and `}`. An optional trailing comma before the closing brace is allowed. Any amount of whitespace can be placed between braces, contained values, and commas. The list may contain at most `(2^63) - 1` entries.
-
-When decoding, duplicate values are allowed and are simply discarded (the logical model does *not* allow multisets).
+When decoding, reading a string consisting of more than `(2^63) - 1` bytes is an *error*.
 
 #### Maps
 
@@ -172,6 +156,12 @@ A map is encoded as a comma-separated list of the contained pairs (see below), e
 An entry is encoded as the encoding of the key, followed by any amount of whitespace, followed by a `:` followed by any amount of whitespace, followed by the encoding of the value.
 
 When decoding multiple entries with identical keys, the later entry replaces the previous entry in the map.
+
+#### Sets
+
+A set (reminder: a map which maps all keys to `nil`) can also be encoded as a comma-separated list of the encodings of the keys, enclosed between `@{` and `}`. An optional trailing comma before the closing brace is allowed. Any amount of whitespace can be placed between braces, contained values, and commas. The list may contain at most `(2^63) - 1` entries.
+
+When decoding, duplicate values are allowed and are simply discarded (the logical model does *not* allow multisets).
 
 ### Compact Encoding
 
@@ -230,7 +220,7 @@ Arrays are encoded just like strings, with the following differences:
 Sets are encoded just like arrays, with the following differences:
 
 - they use the tags `0b1_110_xxxx`
-- when decoding, duplicate values are allowed and are simply discarded
+- when decoding, duplicate values are allowed but are simply discarded
 
 #### Maps
 
@@ -238,7 +228,7 @@ Maps are encoded just like arrays, with the following differences:
 
 - they use the tags `0b1_111_xxxx`
 - the length is not given in items but in entries
-- after the length, the code is followed by the encodings of all entries, where an entry is encoded as the compact encoding of its key followed by the compact encoding of its value
+- after the length, the code is followed by the encodings of all entries, where an entry is encoded as a compact encoding of its key followed by a compact encoding of its value
 - when decoding multiple entries with identical keys, the later entry replaces the previous entry in the map
 
 ### Hybrid Encoding
@@ -249,6 +239,7 @@ The human-readable encoding and the compact encoding are completely disjunct, th
 
 A canonic encoding is one where there is a one-to-one correspondence between values and codes. The valuable value canonic encoding is a subset of the compact encoding, obtained through the following restrictions:
 
-- ints and collections must use the shortest possible encodings for their length/size
-- set items must be sorted ascendingly according to the linear order
-- map entries must be sorted ascendingly by their keys, according to the linear order
+- ints, arrays and maps must use the shortest possible encodings for their length/size
+- strings are always encoded as regular arrays
+- sets are always encoded as regular maps
+- map entries must be sorted ascendingly by their keys, according to the linear order, each key occuring at most once
