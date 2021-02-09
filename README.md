@@ -11,7 +11,7 @@ A valuable value (just *value* from now on) is any of the following:
 - `float`: An [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754) double precision float
 - `int`: An integer between `-(2^63)` and `(2^63) - 1` (inclusive).
 - `array`: An ordered sequence of up to `(2^63) - 1` values.
-- `map`: An unordered collection of pairs (`entries`) of values, where the first values of all entries are pairwise distinct. The first value of an entry is called a *key*, the second value is the *corresponding value*.
+- `map`: An unordered collection of up to `(2^63) - 1` pairs (`entries`) of values, where the first values of all entries are pairwise distinct. The first value of an entry is called a *key*, the second value is the *corresponding value*.
 
 The choice of values a self-describing format provides is to some degree arbitrary. For vv, decisions between different approaches have often been decided based on machine-friendliness. Fixed-width integers are much easier to handle than arbitrary precision integers. Floats are easier than true rationals. Maximum collection and string sizes enable implementations to precisely follow the spec rather than introducing arbitrary limits that would inevitably differ between distinct implementations.
 
