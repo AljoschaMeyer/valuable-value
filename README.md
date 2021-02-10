@@ -8,12 +8,12 @@ A valuable value (just *value* from now on) is any of the following:
 
 - `nil`: A value that carries [no further information](https://en.wikipedia.org/wiki/Unit_type).
 - `boolean`: Either `true` or `false`.
-- `float`: An [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754) double precision float
+- `float`: An [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754) double precision float, with the only difference that there is only one kind of NaN.
 - `int`: An integer between `-(2^63)` and `(2^63) - 1` (inclusive).
 - `array`: An ordered sequence of up to `(2^63) - 1` values.
 - `map`: An unordered collection of up to `(2^63) - 1` pairs (`entries`) of values, where the first values of all entries are pairwise distinct. The first value of an entry is called a *key*, the second value is the *corresponding value*.
 
-The choice of values a self-describing format provides is to some degree arbitrary. For vv, decisions between different approaches have often been decided based on machine-friendliness. Fixed-width integers are much easier to handle than arbitrary precision integers. Floats are easier than true rationals. Maximum collection and string sizes enable implementations to precisely follow the spec rather than introducing arbitrary limits that would inevitably differ between distinct implementations.
+The choice of values a self-describing format provides is to some degree arbitrary. For vv, decisions between different approaches have often been decided based on machine-friendliness. Fixed-width integers are much easier to handle than arbitrary precision integers. Floats are easier than true rationals. Maximum collection sizes enable implementations to precisely follow the spec rather than introducing arbitrary limits that would inevitably differ between distinct implementations.
 
 ## Relations
 
@@ -26,8 +26,8 @@ The equality relation on values is an [equivalence relation](https://en.wikipedi
 - `nil` is equal to `nil` and no other value
 - `false` is equal to `false` and no other value
 - `true` is equal to `true` and no other value
-- two floats are equal if and only if their bit representation is equal (beware, this differs from the usual IEEE 754 equality on floats in that negative and positive zero are considered non-equal and in that NaNs are equal to themselves - although NaNs of differing bit patterns are still unequal)
-- two ints are equal if and only if their bit representation is equal (note that unlike floats, there is no distinct value for a negative 0)
+- two floats are equal if and only if both are NaN or their bit representation is equal
+- two ints are equal if and only if their bit representation is equal
 - two arrays are equal if and only if they have the same length and they are element-wise equal
 - two maps are equal if and only if every key in the first map is also a key in the second map and vice versa, and both maps associate equal values with equal keys
 
@@ -46,10 +46,9 @@ The order is the transitive closure of the following base definitions:
 - arrays are greater than strings
 - maps are greater than sets
 - `true` is greater than `false`
-- floats are ordered according to the IEEE 754-2008 totalOrder predicate, or as summarized [here](https://www.gnu.org/software/libc/manual/html_node/FP-Comparison-Functions.html): negative quiet NaNs, in order of decreasing payload; negative signaling NaNs, in order of decreasing payload; negative infinity; finite numbers, in ascending order, with negative zero before positive zero; positive infinity; positive signaling NaNs, in order of increasing payload; positive quiet NaNs, in order of increasing payload
+- floats are ordered according to the IEEE 754-2008 totalOrder predicate, treating NaN as a positive, quiet NaN whose payload bits are all set to one: negative infinity < finite numbers, in ascending order, with negative zero before positive zero < positive infinity < NaN
 - ints are sorted numerically (e.g. `-1 < 0 < 1`)
 - arrays are sorted [lexicographically](https://en.wikipedia.org/wiki/Lexicographic_order)
-- sets are sorted amongst themselves as if they were arrays containing the set items in ascending order
 - maps are sorted amongst themselves as if they were arrays containing the entries in ascending order of their keys, each entry being a two-element array whose first element is the key and whose second element is the corresponding value
 
 ### A Meaningful Partial Order
@@ -90,9 +89,7 @@ The bytes `0x09` (tab), `0x0a` (newline), and `0x20` (space) are considered whit
 
 #### Floats
 
-Positive infinity is either encoded as the utf-8 string `Inf` or as the utf-8 string `+Inf`.
-
-Positive NaNs are encoded as `NaN@zzzzzzzzzzzzz` or `+NaN@zzzzzzzzzzzzz`, where the `z` are thirteen hexadecimal digits indicating the bits of the significand. The number must be non-zero and the first digit must be a `0` or `1`, i.e. a number between `1` and `2^53 - 1`, the valid NaN payloads. Negative NaNs use `-NaN@zzzzzzzzzzzzz`. The positive NaN whose payload bits are all ones can be encoded as `NaN`. The negative NaN whose payload bits are all ones can be encoded as `-NaN`.
+Positive infinity is either encoded as the utf-8 string `Inf` or as the utf-8 string `+Inf`. NaN is encoded as `NaN`.
 
 A negative float (including negative zero and negative infinity) is encoded as a `-` directly followed by an encoding of the same float but with the sign bit flipped, except that the encoding of the positive float may not begin with a `+`.
 
@@ -183,7 +180,7 @@ Some values have multiple valid encodings. Implementations are strongly encourag
 
 #### Floats
 
-Floats are encoded as the tag `0b1_010_1111`, followed by the eight bytes of the float (sign, exponent, fraction in that order). Decoding any NaN is an *error*.
+Floats are encoded as the tag `0b1_010_1111`, followed by the eight bytes of the float (sign, exponent, fraction in that order). NaN can be encoded as any valid IEEE 754 NaN (arbitrary sign, exponent all ones, remaining bytes arbitrary but non-zero).
 
 #### Ints
 
@@ -240,6 +237,7 @@ The human-readable encoding and the compact encoding are completely disjunct, th
 A canonic encoding is one where there is a one-to-one correspondence between values and codes. The valuable value canonic encoding is a subset of the compact encoding, obtained through the following restrictions:
 
 - ints, arrays and maps must use the shortest possible encodings for their length/size
+- NaN must be encoded as the tag for a float followed by 64 1-bits
 - strings are always encoded as regular arrays
 - sets are always encoded as regular maps
 - map entries must be sorted ascendingly by their keys, according to the linear order, each key occuring at most once
