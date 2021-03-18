@@ -57,8 +57,8 @@ The linear order make some arbitrary decisions to achieve linearity, resulting i
 
 There is no defined order between values of different kinds. Within a kind, the ordering is the same as the linear order for `nil`, booleans, floats, and ints. Arrays and maps are ordered as follows:
 
-- an array `A` is less than an array `B` if and only if `A` contains at most as many values as `B` and every element in `A` is less than the element at the same position in `B`
-- a map `M` is less than a map `N` if and only if the set of keys in `M` is a subset of the set of keys in `N` and for every key `k` in `M` the value associated with `k` in `M` is less than the value associated with `k` in `N`
+- If one of the arrays is strictly smaller than the other, it is conceptually right-padded with values that are strictly less than any real value. The arrays are equal if at each index they contain equal values. One is strictly less than the other if they are not equal and at each index the value in the one is less than or equal to the value in the other.
+- For any key contained in one map but not the other, the other map is conceptually nothing that key to a value that is strictly less than any real value. The maps are then compared as if they were arrays containing the entries in ascending order of their keys, each entry being a two-element array whose first element is the key and whose second element is the corresponding value.
 
 ## Encodings
 
