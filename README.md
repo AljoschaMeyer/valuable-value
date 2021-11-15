@@ -75,7 +75,7 @@ In the following, a *string* refers to an array whose entries are integers betwe
 
 The human-readable encoding is intended to be read, created and edited by humans directly. The recommended file extension is `.vv`.
 
-The bytes `0x09` (tab), `0x0a` (newline), and `0x20` (space) are considered whitespace. A sequence of valid utf-8 beginning with `#` and ending with either `0x0a` (newline) or the end of input is considered whitespace, called a (line) comment. A valid code consists of any amount of whitespace, followed by the encoding of a value as described next, followed by any amount of whitespace. Whitespace may only be inserted at the explicitly specified positions.
+The bytes `0x09` (tab), `0x0a` (newline), `0x0d` (carriage return), and `0x20` (space) are considered whitespace. A sequence of valid utf-8 beginning with `#` and ending with either `0x0a` (newline) or the end of input is considered whitespace, called a (line) comment. A valid code consists of any amount of whitespace, followed by the encoding of a value as described next, followed by any amount of whitespace. Whitespace may only be inserted at the explicitly specified positions.
 
 #### Nil
 
