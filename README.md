@@ -33,7 +33,7 @@ The equality relation on values is an [equivalence relation](https://en.wikipedi
 
 ### Linear Order
 
-Defining any [linear order](https://en.wikipedia.org/wiki/Total_order) over the valuable values involves to some degree arbitrary choices. This order compares values by their kind first, and then within the same kind. This leads to a simple definition and implementation, though some consequences might seem odd at first glance: for example, the float `1.0` is less than the int `0`, since all floats are considered less then all ints.
+Defining any [linear order](https://en.wikipedia.org/wiki/Total_order) over the valuable values involves to some degree arbitrary choices. This order compares values by their kind first, and then within the same kind. This leads to a simple definition and implementation, though some consequences might seem odd at first glance: for example, the float `1.0` is less than the int `0`, because any float is considered less then any int.
 
 Staying compatible with the preceeding definition of equality, negative and positive float zero are considered distinct values, with `-0.0 < 0.0`, unlike the default order defined in the IEEE 754 standard.
 
@@ -58,7 +58,7 @@ The linear order make some arbitrary decisions to achieve linearity, resulting i
 There is no defined order between values of different kinds. Within a kind, the ordering is the same as the linear order for `nil`, booleans, floats, and ints. Arrays and maps are ordered as follows:
 
 - If one of the arrays is strictly smaller than the other, it is conceptually right-padded with values that are strictly less than any real value. The arrays are equal if at each index they contain equal values. One is strictly less than the other if they are not equal and at each index the value in the one is less than or equal to the value in the other.
-- For any key contained in one map but not the other, the other map is conceptually nothing that key to a value that is strictly less than any real value. The maps are then compared as if they were arrays containing the entries in ascending order of their keys, each entry being a two-element array whose first element is the key and whose second element is the corresponding value.
+- For any key contained in one map but not the other, the other map is conceptually mapping that key to a value that is strictly less than any real value. The maps are then compared as if they were arrays containing the entries in ascending order of their keys, each entry being a two-element array whose first element is the key and whose second element is the corresponding value.
 
 ## Encodings
 
