@@ -103,13 +103,13 @@ When decoding a float, the input may not be representable exactly. In these case
 
 #### Ints
 
-A negative int is encoded as a `-` directly followed by an encoding of the positive integer with the same absolute value (pretend for the purpose of this definition that `2^63` was a valid value), except that the encoding of the positive integer may not begin with a `+`.
+A negative int is encoded as a `-` directly followed by an decimal encoding of the positive integer with the same absolute value (pretend for the purpose of this definition that `2^63` was a valid value), except that the encoding of the positive integer may not begin with a `+`.
 
 A positive int can be encoded in one of three ways: Either as a sequence of ASCII decimal digits, or as the utf-8 string `0x` followed by a sequence of ASCII hexadecimal digits (`0123456789abcdefABCDEF`), or as the utf-8 string `0b` followed by a sequence of binary digits (`01`).
 
-A positive integer encoding may be immediately preceded by a `+`, which is ignored when decoding.
+A decimal positive integer encoding may be immediately preceded by a `+`, which is ignored when decoding.
 
-Any character of an int encoding may be followed by an arbitrary number of underscores, which are ignored when decoding.
+Any digit of an int encoding may be followed by an arbitrary number of underscores, which are ignored when decoding.
 
 When decoding, reading an integer outside the allowed range (between `-(2^63)` and `(2^63) - 1` inclusive) is an *error*. Those are not valid human-readably encoded values. Superfluous leading zeros are allowed.
 
