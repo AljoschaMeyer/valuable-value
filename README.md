@@ -197,7 +197,7 @@ Ints are encoded as the tag `0b1_011_xxxx`, where the least significant four bit
 Strings are encoded as the tag `0b1_100_xxxx`, where the least significant four bits and the following bytes are determined as follows:
 
 - for least significant bits strictly less than `0b1100`, the bits themselves represent the length of the string, the tag is followed by that many bytes
-- for least significant bits `0b1100`, the tag is followed by a single byte, which encodes the length of the string, followed by that many bytes of
+- for least significant bits `0b1100`, the tag is followed by a single byte, which encodes the length of the string, followed by that many bytes
 - for least significant bits `0b1101`, the tag is followed by two bytes in big-endian order, which encode the length of the string, followed by that many bytes
 - for least significant bits `0b1110`, the tag is followed by four bytes in big-endian order, which encode the length of the string, followed by that many bytes
 - for least significant bits `0b1111`, the tag is followed by eight bytes in big-endian order, which encode the length of the string, followed by that many bytes
