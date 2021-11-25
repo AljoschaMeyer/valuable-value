@@ -65,8 +65,7 @@ There is no defined order between values of different kinds. Within a kind, the 
 There are different encodings of values, suitable for different use cases:
 
 - The *human-readable encoding* is inefficient but nice for humans to work with.
-- The *compact encoding* is space-efficient and easy to parse for machines but not for humans.
-- The *hybrid encoding* admits both human-readable and compact representations.
+- The *compact encoding* is space-efficient and easy to parse for machines but not for humans
 - The *canonic encoding* guarantees a one-to-one mapping between codes and values.
 
 In the following, a *string* refers to an array whose entries are integers between `0` and `255`, and a *set* refers to a map that maps all its keys to `nil`. Both of these get more compact and easy to write encodings.
@@ -170,37 +169,37 @@ Some values have multiple valid encodings. Implementations are strongly encourag
 
 #### Nil
 
-`nil` is encoded as the tag `0b1_010_1100`, followed by no additional data.
+`nil` is encoded as the tag `0b000_00000`, followed by no additional data.
 
 #### Booleans
 
-`false` is encoded as the tag `0b1_010_1101`, followed by no additional data.
+`false` is encoded as the tag `0b000_00001`, followed by no additional data.
 
-`true` is encoded as the tag `0b1_010_1110`, followed by no additional data.
+`true` is encoded as the tag `0b000_00010`, followed by no additional data.
 
 #### Floats
 
-Floats are encoded as the tag `0b1_010_1111`, followed by the eight bytes of the float (sign, exponent, fraction in that order). NaN can be encoded as any valid IEEE 754 NaN (arbitrary sign, exponent all ones, remaining bytes arbitrary but non-zero).
+Floats are encoded as the tag `0b000_00011`, followed by the eight bytes of the float (sign, exponent, fraction in that order). NaN can be encoded as any valid IEEE 754 NaN (arbitrary sign, exponent all ones, remaining bytes arbitrary but non-zero).
 
 #### Ints
 
-Ints are encoded as the tag `0b1_011_xxxx`, where the least significant four bits and the following bytes are determined as follows:
+Ints are encoded as the tag `0b001_xxxxx`, where the least significant five bits and the following bytes are determined as follows:
 
-- for least significant bits strictly less than `0b1100`, the bits themselves represent the encoded int (in the range from zero to eleven), no more bytes follow the tag
-- for least significant bits `0b1100`, the tag is followed by a single byte, which encodes the int as two's complement (ranging from `-(2^7)` to `(2^7) - 1`)
-- for least significant bits `0b1101`, the tag is followed by two bytes in big-endian order, which encode the int as two's complement (ranging from `-(2^15)` to `(2^15) - 1`)
-- for least significant bits `0b1110`, the tag is followed by four bytes in big-endian order, which encode the int as two's complement (ranging from `-(2^31)` to `(2^31) - 1`)
-- for least significant bits `0b1111`, the tag is followed by eight bytes in big-endian order, which encode the int as two's complement (ranging from `-(2^63)` to `(2^63) - 1`)
+- for least significant bits strictly less than `0b11100`, the bits themselves represent the encoded int (in the range from zero to 27), no more bytes follow the tag
+- for least significant bits `0b11100`, the tag is followed by a single byte, which encodes the int as two's complement (ranging from `-(2^7)` to `(2^7) - 1`)
+- for least significant bits `0b11101`, the tag is followed by two bytes in big-endian order, which encode the int as two's complement (ranging from `-(2^15)` to `(2^15) - 1`)
+- for least significant bits `0b11110`, the tag is followed by four bytes in big-endian order, which encode the int as two's complement (ranging from `-(2^31)` to `(2^31) - 1`)
+- for least significant bits `0b11111`, the tag is followed by eight bytes in big-endian order, which encode the int as two's complement (ranging from `-(2^63)` to `(2^63) - 1`)
 
 #### Strings
 
-Strings are encoded as the tag `0b1_100_xxxx`, where the least significant four bits and the following bytes are determined as follows:
+Strings are encoded as the tag `0b100_xxxxx`, where the least significant five bits and the following bytes are determined as follows:
 
-- for least significant bits strictly less than `0b1100`, the bits themselves represent the length of the string, the tag is followed by that many bytes
-- for least significant bits `0b1100`, the tag is followed by a single byte, which encodes the length of the string, followed by that many bytes
-- for least significant bits `0b1101`, the tag is followed by two bytes in big-endian order, which encode the length of the string, followed by that many bytes
-- for least significant bits `0b1110`, the tag is followed by four bytes in big-endian order, which encode the length of the string, followed by that many bytes
-- for least significant bits `0b1111`, the tag is followed by eight bytes in big-endian order, which encode the length of the string, followed by that many bytes
+- for least significant bits strictly less than `0b11100`, the bits themselves represent the length of the string, the tag is followed by that many bytes
+- for least significant bits `0b11100`, the tag is followed by a single byte, which encodes the length of the string, followed by that many bytes
+- for least significant bits `0b11101`, the tag is followed by two bytes in big-endian order, which encode the length of the string, followed by that many bytes
+- for least significant bits `0b11110`, the tag is followed by four bytes in big-endian order, which encode the length of the string, followed by that many bytes
+- for least significant bits `0b11111`, the tag is followed by eight bytes in big-endian order, which encode the length of the string, followed by that many bytes
 
 When decoding, reading a length of more than `2^63 - 1` is an *error*.
 
@@ -208,7 +207,7 @@ When decoding, reading a length of more than `2^63 - 1` is an *error*.
 
 Arrays are encoded just like strings, with the following differences:
 
-- they use the tags `0b1_101_xxxx`
+- they use the tags `0b101_xxxxx`
 - the length is not given in bytes but in items
 - after the length, the code is followed by the compact encodings of all items in order
 
@@ -216,21 +215,17 @@ Arrays are encoded just like strings, with the following differences:
 
 Sets are encoded just like arrays, with the following differences:
 
-- they use the tags `0b1_110_xxxx`
+- they use the tags `0b110_xxxxx`
 - when decoding, duplicate values are allowed but are simply discarded
 
 #### Maps
 
 Maps are encoded just like arrays, with the following differences:
 
-- they use the tags `0b1_111_xxxx`
+- they use the tags `0b111_xxxxx`
 - the length is not given in items but in entries
 - after the length, the code is followed by the encodings of all entries, where an entry is encoded as a compact encoding of its key followed by a compact encoding of its value
 - when decoding multiple entries with identical keys, the later entry replaces the previous entry in the map
-
-### Hybrid Encoding
-
-The human-readable encoding and the compact encoding are completely disjunct, the hybrid encoding simply allows each (possibly nested) value to be encoded in either way. This encoding should be preferred for programs which read valuable values as input. The recommended file extension is `.hvv`.
 
 ### Canonic Encoding
 
