@@ -173,17 +173,17 @@ Some values have multiple valid encodings. Implementations are strongly encourag
 
 #### Booleans
 
-`false` is encoded as the tag `0b000_00001`, followed by no additional data.
+`false` is encoded as the tag `0b001_00000`, followed by no additional data.
 
-`true` is encoded as the tag `0b000_00010`, followed by no additional data.
+`true` is encoded as the tag `0b001_00001`, followed by no additional data.
 
 #### Floats
 
-Floats are encoded as the tag `0b000_00011`, followed by the eight bytes of the float (sign, exponent, fraction in that order). NaN can be encoded as any valid IEEE 754 NaN (arbitrary sign, exponent all ones, remaining bytes arbitrary but non-zero).
+Floats are encoded as the tag `0b010_00000`, followed by the eight bytes of the float (sign, exponent, fraction in that order). NaN can be encoded as any valid IEEE 754 NaN (arbitrary sign, exponent all ones, remaining bytes arbitrary but non-zero).
 
 #### Ints
 
-Ints are encoded as the tag `0b001_xxxxx`, where the least significant five bits and the following bytes are determined as follows:
+Ints are encoded as the tag `0b011_xxxxx`, where the least significant five bits and the following bytes are determined as follows:
 
 - for least significant bits strictly less than `0b11100`, the bits themselves represent the encoded int (in the range from zero to 27), no more bytes follow the tag
 - for least significant bits `0b11100`, the tag is followed by a single byte, which encodes the int as two's complement (ranging from `-(2^7)` to `(2^7) - 1`)
