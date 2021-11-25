@@ -163,7 +163,7 @@ When decoding, duplicate values are allowed and are simply discarded (the logica
 
 The compact encoding uses techniques similar to [cbor](https://tools.ietf.org/html/rfc7049) to make it space-efficient and easy to parse. There is no concept of whitespace (and thus comments) in the compact encoding. The recommended file extension is `.cvv`.
 
-Values are encoded as a single byte that tags the kind of value, sometimes followed by more, actual data. The first bit of all tags is a one, so that compact and human-readable codes can immediately be recognized. This is followed by three bits indicating the kind of the value. The remaining four bits carry additional information about the following data.
+Values are encoded as a single byte that tags the kind of value, sometimes followed by more, actual data. The first three bits of all tags indicate the kind of the value. The remaining five bits carry additional information about the following data.
 
 Some values have multiple valid encodings. Implementations are strongly encouraged to always use the shortest possible encoding, but reading an overlong code is *not* a decoding error.
 
