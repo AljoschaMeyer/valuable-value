@@ -51,7 +51,14 @@ The order is the transitive closure of the following base definitions:
 - floats are ordered according to the IEEE 754-2008 totalOrder predicate, treating NaN as a positive, quiet NaN whose payload bits are all set to one: negative infinity < finite numbers, in ascending order, with negative zero before positive zero < positive infinity < NaN
 - ints are sorted numerically (e.g. `-1 < 0 < 1`)
 - arrays are sorted [lexicographically](https://en.wikipedia.org/wiki/Lexicographic_order)
-- maps are sorted amongst themselves as if they were arrays containing the entries in ascending order of their keys, each entry being a two-element array whose first element is the key and whose second element is the corresponding value
+- maps are a bit more complicated, because the standard approach of using lexicographic order after sorting the entries is incompatible with the partial order defined in the next section
+  - the empty map is less than any other map
+  - when comparing two nonempty maps `m1` and `m2`, let `k1` and `k2` be the least keys of `m1` and `m2` respectively, and let `v1` and `v2` be the corresponding values
+    - if `k1 < k2`, then `m2 < m1`
+    - if `k2 < k1`, then `m1 < m2`
+    - if `k1 = k2` and `v1 < v2`, then `m1 < m2`
+    - if `k1 = k2` and `v2 < v1`, then `m2 < m1`
+    - if `k1 = k2` and `v1 = v2`, then compare the maps obtained by removing the entries for `k1` and `k2` from `m1` and `m2` respectively
 
 ### A Meaningful Partial Order
 
