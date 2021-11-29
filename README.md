@@ -1,6 +1,6 @@
 # Valuable Value (vv)
 
-**status: approaching stabilizations upon finishing a reference implementation, but currently still tweaking details**
+**status: approaching stabilization upon finishing a reference implementation, but currently still tweaking details**
 
 Specification of a set of values, orderings on them, and some encodings for them, suitable for data interchange.
 
@@ -75,15 +75,15 @@ There are different encodings of values, suitable for different use cases:
 
 - The *human-readable encoding* is inefficient but nice for humans to work with.
 - The *compact encoding* is space-efficient and easy to parse for machines but not for humans
-- The *canonic encoding* guarantees a one-to-one mapping between codes and values.
+- The *canonic encoding* is a subset of the compact encoding that guarantees a one-to-one mapping between codes and values.
 
 In the following, a *string* refers to an array whose entries are integers between `0` and `255`, and a *set* refers to a map that maps all its keys to `nil`. Both of these get more compact and easy to write encodings.
 
 ### Human-Readable Encoding
 
-The human-readable encoding is intended to be read, created and edited by humans directly. The recommended file extension is `.vv`.
+The human-readable encoding is intended to be read, created and edited by humans directly. The recommended file extension is `.vv`. Its syntax utilizes elements from the [generic syntax specification](https://github.com/AljoschaMeyer/generic_syntax).
 
-The bytes `0x09` (tab), `0x0a` (newline), `0x0d` (carriage return), and `0x20` (space) are considered whitespace. A sequence of valid utf-8 beginning with `#` and ending with either `0x0a` (newline) or the end of input is considered whitespace, called a (line) comment. A valid code consists of any amount of whitespace, followed by the encoding of a value as described next, followed by any amount of whitespace. Whitespace may only be inserted at the explicitly specified positions.
+*Whitespace* is defined as [generic syntax whitespace](https://github.com/AljoschaMeyer/generic_syntax#whitespace). A valid  human-readable value code consists of any amount of whitespace, followed by the encoding of a value as described next, followed by any amount of whitespace.
 
 #### Nil
 
@@ -97,29 +97,11 @@ The bytes `0x09` (tab), `0x0a` (newline), `0x0d` (carriage return), and `0x20` (
 
 #### Floats
 
-Positive infinity is either encoded as the utf-8 string `Inf` or as the utf-8 string `+Inf`. NaN is encoded as `NaN`.
-
-A negative float (including negative zero and negative infinity) is encoded as a `-` directly followed by an encoding of the same float but with the sign bit flipped, except that the encoding of the positive float may not begin with a `+`.
-
-Non-negative floats are encoded as a decimal representation: one or more decimal ASCII digits (`0123456789`), followed by a `.`, followed by one or more decimal ASCII digits, optionally followed by an exponent: `e` or `E`, an optional sign (`+` or `-`), followed by one or more decimal ASCII digits.
-
-A positive float encoding may be immediately preceded by a `+`, which is ignored when decoding.
-
-Any character of a float encoding may be followed by an arbitrary number of underscores (`_`), which are ignored when decoding.
-
-When decoding a float, the input may not be representable exactly. In these cases, use ["round to nearest, ties to even"](https://en.wikipedia.org/wiki/IEEE_754#Roundings_to_nearest) rounding mode. As a consequence, floats do not need to be encoded as their exact decimal representation, implementations may instead use a smaller decimal representation that still rounds to the correct float. Note that the rounding may result in an infinity, so it is possible to encode infinities as large decimal numbers (e.g. `9999.9e999999`) rather than `Inf`.
+A float is encoded as a [generic syntax floating-point literal](https://github.com/AljoschaMeyer/generic_syntax#floating-point-literal).
 
 #### Ints
 
-A negative int is encoded as a `-` directly followed by an decimal encoding of the positive integer with the same absolute value (pretend for the purpose of this definition that `2^63` was a valid value), except that the encoding of the positive integer may not begin with a `+`.
-
-A positive int can be encoded in one of three ways: Either as a sequence of ASCII decimal digits, or as the utf-8 string `0x` followed by a sequence of ASCII hexadecimal digits (`0123456789abcdefABCDEF`), or as the utf-8 string `0b` followed by a sequence of binary digits (`01`).
-
-A decimal positive integer encoding may be immediately preceded by a `+`, which is ignored when decoding.
-
-Any digit of an int encoding may be followed by an arbitrary number of underscores, which are ignored when decoding.
-
-When decoding, reading an integer outside the allowed range (between `-(2^63)` and `(2^63) - 1` inclusive) is an *error*. Those are not valid human-readably encoded values. Superfluous leading zeros are allowed.
+An int is encoded as a [generic syntax integer literal](https://github.com/AljoschaMeyer/generic_syntax#integer-literal) between `-(2^63)` and `(2^63) - 1`.
 
 #### Arrays
 
@@ -127,32 +109,7 @@ An array is encoded as a comma-separated list of the encodings of the contained 
 
 When decoding, reading an array of more than `(2^63) - 1` contained values is an *error*.
 
-#### Strings
-
-There are additional ways of encoding strings (reminder: a string is an array whose entries are integers between `0` and `255`).
-
-A string can be encoded as a comma-separated (`,`) list of its bytes, enclosed between `@[` and `]`. The bytes are encoded just like `ints`, except that the numerical value must be between `0` and `255` inclusive. An optional trailing comma before the closing bracket is allowed. Any amount of whitespace can be placed between brackets, contained values, and commas.
-
-A string can also be encoded as a hexadecimal representation of its numeric value: `@x[`, followed by an even number of hexadecimal digits, followed by `]`. Each hexadecimal digit may be preceded or succeeded by an arbitrary number of_, which are ignored when decoding.
-
-A string can also be encoded as a binary representation of its numeric value: `@b[`, followed by a number of binary digits divisible by eight, followed by `]`. Each binary digit may be preceded or succeeded by an arbitrary number of_, which are ignored when decoding.
-
-A string whose content is valid UTF-8 can be encoded as a `"`, followed by up to `(2^63) - 1` bytes worth of scalar encodings (see next paragraph), followed by another `"`.
-
-Each [unicode scalar](http://www.unicode.org/glossary/#unicode_scalar_value) can either be encoded literally or through an escape sequence. The literal encoding can be used for all scalar values other than `"` and `\` and consists of the utf-8 encoding of the scalar value. Alternatively, any of the following escape sequences can be used:
-
-- `\"` for the character `"`
-- `\\` for the character `\`
-- `\t` for the character `horizontal tab` (`0x09`)
-- `\n` for the character `new line` (`0x0a`)
-- `\0` for the character `null` (`0x00`)
-- `\{DIGITS}`, where `DIGITS` is the ASCII decimal representation of any scalar value. `DIGITS` must consist of one to six characters.
-
-When decoding, reading either a literal or an escape sequence that does not correspond to a Unicode scalar value is an *error*. In particular, Unicode code points that are not scalar values are not allowed, even when they form valid surrogate pairs.
-
-A string whose content is valid UTF-8 can also be encoded without escape sequences: one to 256 `@`, followed by `"`, followed by valid UTF-8, followed by `"`, followed by the same number of `@` as at the beginning of the string encoding.
-
-When decoding, reading a string consisting of more than `(2^63) - 1` bytes is an *error*.
+Strings (arrays whose entries are ints between `0` and `255`) can also be encoded as [generic syntax byte string literals](https://github.com/AljoschaMeyer/generic_syntax#byte-string) or as [generic syntax UTF-8 string literals](https://github.com/AljoschaMeyer/generic_syntax#utf-8-string).
 
 #### Maps
 
@@ -164,9 +121,9 @@ When decoding multiple entries with identical keys, the later entry replaces the
 
 #### Sets
 
-A set (reminder: a map which maps all keys to `nil`) can also be encoded as a comma-separated list of the encodings of the keys, enclosed between `@{` and `}`. An optional trailing comma before the closing brace is allowed. Any amount of whitespace can be placed between braces, contained values, and commas. The list may contain at most `(2^63) - 1` entries.
+A set (a map which maps all keys to `nil`) can also be encoded as a comma-separated list of the encodings of the keys, enclosed between `@{` and `}`. An optional trailing comma before the closing brace is allowed. Any amount of whitespace can be placed between braces, contained values, and commas. The list may contain at most `(2^63) - 1` entries.
 
-When decoding, duplicate values are allowed and are simply discarded (the logical model does *not* allow multisets).
+When decoding, duplicate values are allowed and are simply discarded.
 
 ### Compact Encoding
 
