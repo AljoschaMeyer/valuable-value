@@ -81,9 +81,9 @@ In the following, a *string* refers to an array whose entries are integers betwe
 
 ### Human-Readable Encoding
 
-The human-readable encoding is intended to be read, created and edited by humans directly. The recommended file extension is `.vv`. Its syntax utilizes elements from the [generic syntax specification](https://github.com/AljoschaMeyer/generic_syntax).
+The human-readable encoding is intended to be read, created and edited by humans directly. The recommended file extension is `.vv`. Its syntax utilizes elements from the [common syntax specification](https://github.com/AljoschaMeyer/common_syntax).
 
-*Whitespace* is defined as [generic syntax whitespace](https://github.com/AljoschaMeyer/generic_syntax#whitespace). A valid  human-readable value code consists of any amount of whitespace, followed by the encoding of a value as described next, followed by any amount of whitespace.
+*Whitespace* is defined as [common syntax whitespace](https://github.com/AljoschaMeyer/common_syntax#whitespace). A valid  human-readable value code consists of any amount of whitespace, followed by the encoding of a value as described next, followed by any amount of whitespace.
 
 #### Nil
 
@@ -97,11 +97,11 @@ The human-readable encoding is intended to be read, created and edited by humans
 
 #### Floats
 
-A float is encoded as a [generic syntax floating-point literal](https://github.com/AljoschaMeyer/generic_syntax#floating-point-literal).
+A float is encoded as a [common syntax floating-point literal](https://github.com/AljoschaMeyer/common_syntax#floating-point-literal).
 
 #### Ints
 
-An int is encoded as a [generic syntax integer literal](https://github.com/AljoschaMeyer/generic_syntax#integer-literal) between `-(2^63)` and `(2^63) - 1`.
+An int is encoded as a [common syntax integer literal](https://github.com/AljoschaMeyer/common_syntax#integer-literal) between `-(2^63)` and `(2^63) - 1`.
 
 #### Arrays
 
@@ -109,7 +109,7 @@ An array is encoded as a comma-separated list of the encodings of the contained 
 
 When decoding, reading an array of more than `(2^63) - 1` contained values is an *error*.
 
-Strings (arrays whose entries are ints between `0` and `255`) can also be encoded as [generic syntax byte string literals](https://github.com/AljoschaMeyer/generic_syntax#byte-string) or as [generic syntax UTF-8 string literals](https://github.com/AljoschaMeyer/generic_syntax#utf-8-string).
+Strings (arrays whose entries are ints between `0` and `255`) can also be encoded as [common syntax byte string literals](https://github.com/AljoschaMeyer/common_syntax#byte-string) or as [common syntax UTF-8 string literals](https://github.com/AljoschaMeyer/common_syntax#utf-8-string).
 
 #### Maps
 
