@@ -48,7 +48,7 @@ We write `v <= w` to denote that the value `v` is a subvalue of the value `w`.
 For all values `v` we have `v <= v`. Furthermore, two values of the same kind might be in relation:
 
 - `true` is greater than `false`.
-- Floats are ordered according to the IEEE 754-2008 totalOrder predicate, treating NaN as a positive, quiet NaN whose payload bits are all set to one: negative infinity < finite numbers, in ascending order, with negative zero before positive zero < positive infinity < NaN.
+- Floats are ordered according to the IEEE 754-2008 totalOrder predicate, treating NaN as a negative, quiet NaN whose payload bits are all set to one: NaN < negative infinity < finite numbers, in ascending order, with negative zero before positive zero < positive infinity.
 - Ints are sorted numerically (e.g. `-1 < 0 < 1`).
 - Arrays require a recursive definition: If one of the arrays contains strictly fewer elements than the other, it is treated as if it was right-padded to the length of the other array with values that are a subvalue of any actual valuable value. One of these arrays is a subvalue of the other if at each index the value in the one is a subvalue of the value in the other.
 - Maps require a recursive definition: For any key contained in one map but not the other, the other map is treated as if it mapped that key to a value that is a subvalue of any actual valuable value. One of these maps is a subvalue of the other if it maps every key to a subvalue of the value to which the other map maps that same key.
