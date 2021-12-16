@@ -208,8 +208,8 @@ Maps are encoded just like arrays, with the following differences:
 
 A canonic encoding is one where there is a one-to-one correspondence between values and codes. The valuable value canonic encoding is a subset of the compact encoding, obtained through the following restrictions:
 
-- ints, arrays and maps must use the shortest possible encodings for their length/size
+- ints, strings, arrays, sets, and maps must use the shortest possible encodings for their length/size
 - NaN must be encoded as the tag for a float followed by 64 1-bits
-- strings are always encoded as regular arrays
-- sets are always encoded as regular maps
+- arrays that can be encoded as strings must be encoded as string
+- maps that can be encoded as set must be encoded as sets
 - map entries must be sorted ascendingly by their keys, according to the canonic linear order, each key occuring at most once
