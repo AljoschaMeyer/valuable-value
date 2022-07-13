@@ -210,6 +210,6 @@ A canonic encoding is one where there is a one-to-one correspondence between val
 
 - ints, strings, arrays, sets, and maps must use the shortest possible encodings for their length/size
 - NaN must be encoded as the tag for a float followed by 64 1-bits
-- arrays that can be encoded as strings must be encoded as string
+- arrays that can be encoded as strings must be encoded as strings
 - maps that can be encoded as set must be encoded as sets
 - map entries must be sorted ascendingly by their keys, according to the canonic linear order, each key occuring at most once
