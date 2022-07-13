@@ -1,6 +1,6 @@
 # Valuable Value (vv)
 
-**status: stable, there will be no more changes to the specification except for changes in presentation**
+**status: approaching stabilization upon finishing a reference implementation, but currently still tweaking details**
 
 Specification of a set of values, orderings on them, and some encodings for them, suitable for data interchange.
 
